@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { auth, provider } from './firebase';
 import { signInWithPopup,signOut} from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,7 @@ import Image from 'next/image';
 const HomePage: React.FC = () => {
   const router = useRouter();
   const { user} = useAuth();
+  const [showForm, setShowForm] = useState<boolean>(false);
 
   useEffect(() => {
     if (user) {
@@ -29,20 +30,31 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-r from-green-200 via-green-300 to-green-400">
-      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/logo.png')" }}></div>
-      <div className="relative bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center z-10">
-        <h1 className="text-black text-3xl font-bold mb-4">Welcome to PantryGuru</h1>
-        <p className="text-black mb-6">Please sign in to access your pantry tracker.</p>
-        <button
-          onClick={signInWithGoogle}
-          className="flex items-center bg-blue-500 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition duration-300 mx-auto"
-        >
-          <UserIcon className="mr-2 h-6 w-6" />
-          Sign in with Google
-        </button>
+    <div className="flex min-h-screen bg-gradient-to-r from-slate-400 via-slate-600 to-slate-800 items-center justify-center">
+      <div className="flex flex-col items-center justify-center w-full lg:w-1/2 p-6">
+        {/* Logo Section */}
+        <div className="mb-8 flex flex-col items-center">
+          <img 
+            src="/logo.png" 
+            alt="PantryGuru Logo" 
+            className="object-cover w-48 h-auto"
+          />
+          <h1 className="text-white text-3xl font-bold mt-4">Welcome to PantryGuru</h1>
+        </div>
+        
+        {/* Form Card Section */}
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+          <p className="text-black text-center mb-6">Please sign in to access your pantry tracker.</p>
+          <button
+            onClick={signInWithGoogle}
+            className="flex items-center bg-blue-500 text-white py-3 px-6 rounded-lg shadow-lg hover:bg-blue-600 transition duration-300 mx-auto"
+          >
+            <UserIcon className="mr-2 h-6 w-6" />
+            Sign in with Google
+          </button>
+        </div>
       </div>
-    </div>
+      </div>
   );
 };
 
