@@ -1,22 +1,62 @@
 'use client'
 import { Button } from "@mui/material";
-import Reacr,{useState,useEffect} from 'react';
-import {collection, addDoc, setDoc,query, onSnapshot, QuerySnapshot, deleteDoc, doc} from 'firebase/firestore';
-import {db} from '../firebase';
+import Reacr, { useState, useEffect, useRef } from 'react';
+import { collection, addDoc, setDoc, query, onSnapshot, QuerySnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import { PlusIcon, TrashIcon } from "@heroicons/react/16/solid";
-import { useAuth} from "../authcontext";
+import { useAuth } from "../authcontext";
 import { useRouter } from "next/navigation";
+import { Camera } from "react-camera-pro";
 
 export default function PantryPage() {
-  type Item ={
-    name:string;
-    id?:string;
+  type Item = {
+    name: string;
+    id?: string;
   }
-  const { user,logout} = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
-  const [items,setItems] = useState([]);
-  const [newItem,setNewItem] = useState({name:'',quantity:0});
+  const [items, setItems] = useState([]);
+  const [newItem, setNewItem] = useState({ name: '', quantity: 0 });
   const [loading, setLoading] = useState(true);
+  const camera: any = null;
+  const [image, setImage] = useState(undefined);
+  const [displayImage, setDisplayImage] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredItems, setFilteredItems] =useState(items);
+  const errorMessages = {
+    noCameraAccessible: 'No camera device accessible. Please connect your camera or try a different browser.',
+    permissionDenied: 'Permission denied. Please refresh and give camera permission.',
+    switchCamera:
+      'It is not possible to switch camera to different one because there is only one video device accessible.',
+    canvas: 'Canvas is not supported.'
+  };
+
+  const handleSearch = (event: any) => {
+    setSearchQuery(event.target.value);
+    console.log(searchQuery);
+  };
+  useEffect(()=>
+  {
+     
+   let filteredItemsArr :any=[];
+   if(searchQuery == '')
+   {
+    setFilteredItems(items);
+   }
+   else{
+    items.filter((item:any)=> 
+    {
+      console.log(item, searchQuery);
+      if(item.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      {
+        filteredItemsArr.push(item)
+      }
+    })
+    console.log(filteredItemsArr)
+    setFilteredItems(filteredItemsArr);
+  }
+  },[searchQuery]
+  );
 
   useEffect(() => {
     if (!user) {
@@ -26,41 +66,46 @@ export default function PantryPage() {
   }, [user, loading, router]);
 
 
-  const addItem = async(e:any)=>{
+  const addItem = async (e: any) => {
     e.preventDefault();
-    if(newItem.name !=''){
+    if (newItem.name != '') {
       console.log('enetred');
-      await addDoc(collection(db,'items'),{
-        name:newItem.name.trim(),
-        quantity:newItem.quantity
+      await addDoc(collection(db, 'items'), {
+        name: newItem.name.trim(),
+        quantity: newItem.quantity
       });
-      setNewItem({name:'',quantity:0});
+      setNewItem({ name: '', quantity: 0 });
       // setItems({...items,newItem});
     }
   }
-  const deleteItem = async(id:string) =>{
-    await deleteDoc(doc(db,'items',id));
+  const deleteItem = async (id: string) => {
+    await deleteDoc(doc(db, 'items', id));
   }
-  useEffect(()=>{
-    try{
-    const q = query(collection(db,'items'))
-    const unsubscribed = onSnapshot(q,(querySnapshot)=>{
-      let itemsArr:any =[]
-      querySnapshot.forEach((doc)=>{
-        itemsArr.push({...doc.data(),id:doc.id})
-      })
-      setItems(itemsArr);
-    });
-  }catch(e){
-    console.log('error',e);
+  const updateItem = async (id: string, quantity: number) => {
+    await updateDoc(doc(db, 'items', id), {
+      quantity: quantity
+    })
   }
-  finally{
-    setLoading(false);
-  }
-  },[])
+  useEffect(() => {
+    try {
+      const q = query(collection(db, 'items'))
+      const unsubscribed = onSnapshot(q, (querySnapshot) => {
+        let itemsArr: any = []
+        querySnapshot.forEach((doc) => {
+          itemsArr.push({ ...doc.data(), id: doc.id })
+        })
+        setItems(itemsArr);
+      });
+    } catch (e) {
+      console.log('error', e);
+    }
+    finally {
+      setLoading(false);
+    }
+  }, []);
   return (
     <main className="flex min-h-screen flex-col items-center justify between sm:p-24 p-4">
-       <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-white">
           Hello, {' '}
           <span className="bg-gradient-to-r from-pink-500 via-yellow-500 to-teal-500 text-transparent bg-clip-text font-semibold">
@@ -77,49 +122,93 @@ export default function PantryPage() {
       </div>
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm">
         <h1 className="text-4xl p-4 text-center">Pantry Tracker</h1>
-        {loading? (
+        {loading ? (
           <div className="flex justify-center items-center h-screen">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
         )
-        :
-        (
-        <div className="bg-slate-800 p-4 rounded-lg">
-          <form className="grid grid-cols-6 gap-x-4 items-center text-black">
-            <input 
-            value={newItem.name}
-            onChange = {(e) =>setNewItem({...newItem,name:e.target.value})}
-            className ="col-span-3 p-3 border rounded-lg" type = "text" placeholder="Enter Item"></input>
-            <input 
-                value={newItem.quantity}
-                onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) })}
-                className="col-span-2 p-3 border rounded-lg" 
-                type="number" 
-                min="1" 
-                placeholder="Qty" 
+          :
+          (
+            <div className="bg-slate-800 p-4 rounded-lg">
+              <form className="grid grid-cols-6 gap-x-4 items-center text-black">
+                <input
+                  value={newItem.name}
+                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                  className="col-span-3 p-3 border rounded-lg" type="text" placeholder="Enter Item"></input>
+                <input
+                  value={newItem.quantity}
+                  onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) })}
+                  className="col-span-2 p-3 border rounded-lg"
+                  type="number"
+                  min="1"
+                  placeholder="Qty"
+                />
+                <button
+                  onClick={addItem}
+                  className="text-white bg-slate-950 rounded-lg hover:bg-slate-900 p-3 text-xl" type="submit">
+                  <PlusIcon className="h-6 w-6 mr-1" />
+                  Add Item</button>
+
+              </form>
+              <div>
+                {displayImage ?
+                  (
+                    <div className="flex-col justify-between">
+                      <Camera ref={camera} errorMessages={errorMessages} />
+                      <button onClick={() => {
+                        if (camera.current) {
+                          const photo = camera.current.takePhoto();
+                          setImage(photo);
+                        }
+                      }}>Capture</button>
+                    </div>
+
+
+                  )
+
+                  : (<></>)}
+                {/* <Camera ref={camera} errorMessages={errorMessages}/> */}
+                <button onClick={() => {
+                  setDisplayImage(true);
+                  // if (camera.current) {
+                  //   const photo = camera.current.takePhoto();
+                  //   setImage(photo);
+                  // }
+                }
+                }>Take Photo
+                </button>
+                <img src={image} alt='Taken photo' />
+              </div>
+              <input
+                type="text"
+                className="text-black p-2 border rounded w-full mb-4"
+                placeholder="Search items..."
+                value={searchQuery}
+                onChange={handleSearch}
               />
-            <button 
-            onClick={addItem}
-            className = "text-white bg-slate-950 rounded-lg hover:bg-slate-900 p-3 text-xl" type="submit">
-              <PlusIcon className="h-6 w-6 mr-1" />
-              Add Item</button>
-          </form>
-          <ul>
-            {items.map((item:any,id) => (
-              <li key ={id} className="my-4 w-full flex justify-between bg-slate-950">
-                <div className="p-4 w-full flex justify-between">
-                  <span className="capitalize">{item.name}</span>
-                  <span>{item.quantity}</span>
-                  </div>
-                  <button
-                  onClick={()=>deleteItem(item.id)}
-                  className="ml-8 p-4 border-l-2 border-slate-900 hover:bg-slate-900 w-16">
-                    <TrashIcon className="h-6 w-6" /></button>
-              </li>
-            ))}
-          </ul>
-        </div>
-        )
+              <ul>
+                {filteredItems.map((item: any, id) => (
+                  <li key={id} className="my-4 w-full flex justify-between bg-slate-950">
+                    <div className="p-4 w-full flex justify-between">
+                      <span className="capitalize">{item.name}</span>
+                      <input
+                        value={item.quantity}
+                        onChange={(e) => updateItem(item.id, parseInt(e.target.value))}
+                        className="text-black p-1 border rounded-md w-20 text-center"
+                        type="number"
+                        placeholder={item.quantity}
+                      />
+                      {/* <span>{item.quantity}</span> */}
+                    </div>
+                    <button
+                      onClick={() => deleteItem(item.id)}
+                      className="ml-8 p-4 border-l-2 border-slate-900 hover:bg-slate-900 w-16">
+                      <TrashIcon className="h-6 w-6" /></button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
         }
       </div>
     </main>

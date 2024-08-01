@@ -10,7 +10,6 @@ import Image from 'next/image';
 const HomePage: React.FC = () => {
   const router = useRouter();
   const { user} = useAuth();
-  const [showForm, setShowForm] = useState<boolean>(false);
 
   useEffect(() => {
     if (user) {
@@ -20,11 +19,8 @@ const HomePage: React.FC = () => {
   const signInWithGoogle = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
-      console.log(result.user.displayName);
-      // Successfully signed in
       router.push('/pantry');
     } catch (error) {
-      // Handle Errors here.
       console.error("Error signing in: ", error);
     }
   };
@@ -32,7 +28,6 @@ const HomePage: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-gradient-to-r from-slate-400 via-slate-600 to-slate-800 items-center justify-center">
       <div className="flex flex-col items-center justify-center w-full lg:w-1/2 p-6">
-        {/* Logo Section */}
         <div className="mb-8 flex flex-col items-center">
           <img 
             src="/logo.png" 
@@ -41,8 +36,6 @@ const HomePage: React.FC = () => {
           />
           <h1 className="text-white text-3xl font-bold mt-4">Welcome to PantryGuru</h1>
         </div>
-        
-        {/* Form Card Section */}
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
           <p className="text-black text-center mb-6">Please sign in to access your pantry tracker.</p>
           <button
