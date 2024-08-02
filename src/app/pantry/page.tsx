@@ -18,11 +18,11 @@ export default function PantryPage() {
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState({ name: '', quantity: 0 });
   const [loading, setLoading] = useState(true);
-  const camera: any = null;
+  const camera: any = useRef(null);
   const [image, setImage] = useState(undefined);
   const [displayImage, setDisplayImage] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredItems, setFilteredItems] =useState(items);
+  const [filteredItems, setFilteredItems] = useState(items);
   const errorMessages = {
     noCameraAccessible: 'No camera device accessible. Please connect your camera or try a different browser.',
     permissionDenied: 'Permission denied. Please refresh and give camera permission.',
@@ -35,27 +35,30 @@ export default function PantryPage() {
     setSearchQuery(event.target.value);
     console.log(searchQuery);
   };
-  useEffect(()=>
-  {
-     
-   let filteredItemsArr :any=[];
-   if(searchQuery == '')
-   {
-    setFilteredItems(items);
-   }
-   else{
-    items.filter((item:any)=> 
-    {
-      console.log(item, searchQuery);
-      if(item.name.toLowerCase().includes(searchQuery.toLowerCase()))
-      {
-        filteredItemsArr.push(item)
-      }
-    })
-    console.log(filteredItemsArr)
-    setFilteredItems(filteredItemsArr);
-  }
-  },[searchQuery]
+  const capturePhoto = () => {
+    if (camera.current) {
+      const photo = camera.current.takePhoto();
+      setImage(photo);
+      setDisplayImage(false);
+    }
+  };
+  useEffect(() => {
+
+    let filteredItemsArr: any = [];
+    if (searchQuery == '') {
+      setFilteredItems(items);
+    }
+    else {
+      items.filter((item: any) => {
+        console.log(item, searchQuery);
+        if (item.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+          filteredItemsArr.push(item)
+        }
+      })
+      console.log(filteredItemsArr)
+      setFilteredItems(filteredItemsArr);
+    }
+  }, [searchQuery]
   );
 
   useEffect(() => {
@@ -150,30 +153,32 @@ export default function PantryPage() {
                   Add Item</button>
 
               </form>
-              <div>
+              <div className="flex-col items-center justify-between">
                 {displayImage ?
                   (
-                    <div className="flex-col justify-between">
+                    <div style={{ width: '100%', height: 'auto', borderRadius: '8px', overflow: 'hidden' }}>
                       <Camera ref={camera} errorMessages={errorMessages} />
-                      <button onClick={() => {
-                        if (camera.current) {
-                          const photo = camera.current.takePhoto();
-                          setImage(photo);
-                        }
-                      }}>Capture</button>
+                      <button
+                        onClick={capturePhoto}
+                        className="absolute bottom-2 left-1/2 transform -translate-x-1/2 p-1"
+                        style={{
+                          background: "url('https://img.icons8.com/ios/50/000000/compact-camera.png') center / 50px no-repeat",
+                          width: '80px',
+                          height: '80px',
+                          border: 'solid 4px black',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                        }}
+                      >
+                      </button>
                     </div>
 
 
                   )
 
                   : (<></>)}
-                {/* <Camera ref={camera} errorMessages={errorMessages}/> */}
-                <button onClick={() => {
+                <button className="bg-blue-600 p-2 rounded-md w-medium" onClick={() => {
                   setDisplayImage(true);
-                  // if (camera.current) {
-                  //   const photo = camera.current.takePhoto();
-                  //   setImage(photo);
-                  // }
                 }
                 }>Take Photo
                 </button>
