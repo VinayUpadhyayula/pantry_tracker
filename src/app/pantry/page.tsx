@@ -147,7 +147,7 @@ export default function PantryPage() {
                 {displayImage ?
                   (
                     
-                    <CameraComp setImage = {setImage} setDisplayImage = {setDisplayImage}></CameraComp>
+                    <CameraComp image={image} setImage = {setImage} setDisplayImage = {setDisplayImage}></CameraComp>
 
                   )
 

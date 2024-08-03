@@ -3,12 +3,13 @@ import { Camera } from "react-camera-pro";
 
 interface CameraCompProps
 {
+  image:any;
   setImage:(img:any)=>void;
   setDisplayImage :(imgflag:boolean)=>void;
 }
-const CameraComp: React.FC<CameraCompProps> = ({setImage,setDisplayImage}) => {
+const CameraComp: React.FC<CameraCompProps> = ({image,setImage,setDisplayImage}) => {
 const camera: any = useRef(null);
- const [facingMode, setFacingMode] = useState('environment');
+ const [facingMode, setFacingMode] = useState('user');
 const errorMessages = {
     noCameraAccessible: 'No camera device accessible. Please connect your camera or try a different browser.',
     permissionDenied: 'Permission denied. Please refresh and give camera permission.',
@@ -25,6 +26,7 @@ const errorMessages = {
   };
   const flipCamera = () => {
     setFacingMode((prevFacingMode) => (prevFacingMode === 'environment' ? 'user' : 'environment'));
+    console.log(facingMode);
   };
     return (
         <div style={{ width: '100%', height: 'auto', borderRadius: '8px', overflow: 'hidden' }}>
