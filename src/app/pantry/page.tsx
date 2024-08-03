@@ -153,7 +153,7 @@ export default function PantryPage() {
                   Add Item</button>
 
               </form>
-              <div className="flex-col items-center justify-between">
+              <div className="flex-col items-center justify-between p-4">
                 {displayImage ?
                   (
                     <div style={{ width: '100%', height: 'auto', borderRadius: '8px', overflow: 'hidden' }}>
@@ -182,7 +182,7 @@ export default function PantryPage() {
                 }
                 }>Take Photo
                 </button>
-                <img src={image} alt='Taken photo' />
+                {image ? (<img className="w-95 h-64 mt-2 object-cover" src={image} alt='Taken photo' />) :(<></>)}
               </div>
               <input
                 type="text"
