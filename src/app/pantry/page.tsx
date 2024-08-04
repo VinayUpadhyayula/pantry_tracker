@@ -8,30 +8,57 @@ import { useAuth } from "../authcontext";
 import { useRouter } from "next/navigation";
 import { Camera } from "react-camera-pro";
 import { CameraComp } from "../CameraComp";
+import {convertImageToBase64, run} from "../genai/app";
+import * as dotenv from "dotenv";
 
 export default function PantryPage() {
   type Item = {
     name: string;
     id?: string;
   }
+  // dotenv.config({ path: '../.env' });
   const { user, logout } = useAuth();
   const router = useRouter();
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState({ name: '', quantity: 0 });
   const [loading, setLoading] = useState(true);
   const camera: any = useRef(null);
-  const [image, setImage] = useState(undefined);
+  const [image, setImage] = useState('');
   const [displayImage, setDisplayImage] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredItems, setFilteredItems] = useState(items);
+  const [airesp, setAIResponse] = useState('');
   const [facingMode, setFacingMode] = useState('environment');
-
+  let api_key = process.env.REACT_APP_API_KEY
+  //  console.log(api_key);
+  const callGeminiAndSaveToDB = async ()=>{
+    const base64Image = convertImageToBase64(image)
+    const result = await run(image,api_key);
+    const {item_name, image_descr} =  JSON.parse(result.response.text());
+    console.log(image_descr);
+    setAIResponse(image_descr);
+    setNewItem({name:item_name, quantity:1});
+    addItem('');
+  }
  
   const handleSearch = (event: any) => {
     setSearchQuery(event.target.value);
     console.log(searchQuery);
   };
+  const handleFileUpload = (e:any)=>{
+    const file = e.target.files[0]
+    console.log(file);
+    let reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function () {
+    setImage(reader.result as string);
+     console.log(reader.result);
+   };
+   reader.onerror = function (error) {
+     console.log('Error: ', error);
+   };
 
+  }
   useEffect(() => {
 
     let filteredItemsArr: any = [];
@@ -60,9 +87,11 @@ export default function PantryPage() {
 
 
   const addItem = async (e: any) => {
-    e.preventDefault();
+    if(e)
+      e.preventDefault();
+    console.log(newItem);
     if (newItem.name != '') {
-      console.log('enetred');
+      console.log('saving to db...')
       await addDoc(collection(db, 'items'), {
         name: newItem.name.trim(),
         quantity: newItem.quantity
@@ -98,7 +127,7 @@ export default function PantryPage() {
     }
   }, []);
   return (
-    <main className="flex min-h-screen flex-col items-center justify between sm:p-24 p-4">
+    <main className="flex min-h-screen flex-col items-center justify-between sm:p-24 p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-white">
           Hello, {' '}
@@ -158,7 +187,22 @@ export default function PantryPage() {
                 }
                 }>Take Photo
                 </button>
-                {image ? (<img className="w-95 h-64 mt-2 object-cover" src={image} alt='Taken photo' />) :(<></>)}
+                <input className = "p-2" type="file" id="imageFile" name="imageFile" accept="image/*" onChange={e=>handleFileUpload(e)}/>
+                {/* <button className="bg-blue-600 p-2 rounded-md w-medium" onClick = {handleFileUpload}>Upload File</button> */}
+                {image ? 
+                  (
+                    <div className="flex-col items-center justify">
+                    <img className="w-95 h-64 mt-2 object-cover" src={image} alt='Taken photo' />
+                    <button className="bg-blue-600 p-2 rounded-md w-medium" onClick={(env) => {
+                      callGeminiAndSaveToDB();
+                    }
+                    }>Upload Image
+                    </button>
+                  </div>
+                  ) 
+                  :(<></>)
+                }
+                {airesp ? (<div><span>AI Description of image: </span><span>{airesp}</span></div>): (<></>)}
               </div>
               <input
                 type="text"

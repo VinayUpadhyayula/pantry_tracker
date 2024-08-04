@@ -2,20 +2,22 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import {getFirestore} from "firebase/firestore"
+import {getFirestore} from "firebase/firestore";
+import * as dotenv from "dotenv";
+dotenv.config();
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyB6-AcTGGWxH15shL4y1uHO6EdNfV1QIFk",
-  authDomain: "pantry-tracker-e99ca.firebaseapp.com",
-  projectId: "pantry-tracker-e99ca",
-  storageBucket: "pantry-tracker-e99ca.appspot.com",
-  messagingSenderId: "232387156646",
-  appId: "1:232387156646:web:84a45cf0a8d1377abbf267",
-  measurementId: "G-178N71JTMC"
+  apiKey: process.env.NEXT_PUBLIC_apiKey,
+  authDomain: process.env.NEXT_PUBLIC_authDomain,
+  projectId: process.env.NEXT_PUBLIC_projectId,
+  storageBucket: process.env.NEXT_PUBLIC_storageBucket,
+  messagingSenderId: process.env.NEXT_PUBLIC_messagingSenderId,
+  appId: process.env.NEXT_PUBLIC_appId,
+  measurementId: process.env.NEXT_PUBLIC_measurementId
 };
 
 // Initialize Firebase
