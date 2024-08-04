@@ -14,13 +14,14 @@ import * as dotenv from "dotenv";
 export default function PantryPage() {
   type Item = {
     name: string;
-    id?: string;
+    quantity:number;
+    image?:string;
   }
   // dotenv.config({ path: '../.env' });
   const { user, logout } = useAuth();
   const router = useRouter();
   const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState({ name: '', quantity: 0 });
+  const [newItem, setNewItem] = useState<Item>({ name: '', quantity: 0});
   const [loading, setLoading] = useState(true);
   const camera: any = useRef(null);
   const [image, setImage] = useState('');
@@ -35,10 +36,16 @@ export default function PantryPage() {
     const base64Image = convertImageToBase64(image)
     const result = await run(image,api_key);
     const {item_name, image_descr} =  JSON.parse(result.response.text());
-    console.log(image_descr);
+    console.log(item_name, image_descr);
     setAIResponse(image_descr);
-    setNewItem({name:item_name, quantity:1});
-    addItem('');
+    setNewItem({name:item_name, quantity:1,image:image});
+    console.log(newItem)
+    await addItem('');
+    setImage('');
+    // setAIResponse('');
+    const ele = document.getElementById('imageFile')
+    if(ele && ele instanceof HTMLInputElement)
+      ele.value = ''
   }
  
   const handleSearch = (event: any) => {
@@ -47,12 +54,12 @@ export default function PantryPage() {
   };
   const handleFileUpload = (e:any)=>{
     const file = e.target.files[0]
-    console.log(file);
+    // console.log(file);
     let reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = function () {
     setImage(reader.result as string);
-     console.log(reader.result);
+    //  console.log(reader.result);
    };
    reader.onerror = function (error) {
      console.log('Error: ', error);
