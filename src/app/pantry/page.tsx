@@ -88,6 +88,7 @@ export default function PantryPage() {
           itemsArr.push({ ...doc.data(), id: doc.id })
         })
         setItems(itemsArr);
+        setFilteredItems(itemsArr);// for the first time loading
       });
     } catch (e) {
       console.log('error', e);
