@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { Camera } from "react-camera-pro";
 import { CameraComp } from "../CameraComp";
 import {convertImageToBase64, run} from "../genai/app";
+import Alert from '@mui/material/Alert';
 import * as dotenv from "dotenv";
 
 export default function PantryPage() {
@@ -30,6 +31,7 @@ export default function PantryPage() {
   const [filteredItems, setFilteredItems] = useState(items);
   const [airesp, setAIResponse] = useState('');
   const [facingMode, setFacingMode] = useState('environment');
+  const[alert, setAlert] = useState('');
   let api_key = process.env.REACT_APP_API_KEY
   //  console.log(api_key);
   const callGeminiAndSaveToDB = async ()=>{
@@ -40,9 +42,6 @@ export default function PantryPage() {
     setAIResponse(image_descr);
     setNewItem({name:item_name, quantity:1,image:image});
     console.log(newItem)
-    await addItem('');
-    setImage('');
-    // setAIResponse('');
     const ele = document.getElementById('imageFile')
     if(ele && ele instanceof HTMLInputElement)
       ele.value = ''
@@ -97,15 +96,26 @@ export default function PantryPage() {
     if(e)
       e.preventDefault();
     console.log(newItem);
-    if (newItem.name != '') {
-      console.log('saving to db...')
-      await addDoc(collection(db, 'items'), {
-        name: newItem.name.trim(),
-        quantity: newItem.quantity
-      });
-      setNewItem({ name: '', quantity: 0 });
-      // setItems({...items,newItem});
-    }
+    items.map((item:Item)=>{
+      if(item.name == newItem.name.trim())
+      {
+        setAlert('Item'+item.name+' already exists! Please add a different one');
+      }
+    })
+    if(alert==''){
+      if (newItem.name != '') {
+        console.log('saving to db...')
+        await addDoc(collection(db, 'items'), {
+          name: newItem.name.trim(),
+          quantity: newItem.quantity,
+          image: newItem.image
+        });
+        setNewItem({ name: '', quantity: 0, image:''});
+        setImage('')
+        setAIResponse('')
+        // setItems({...items,newItem});
+      }
+  }
   }
   const deleteItem = async (id: string) => {
     await deleteDoc(doc(db, 'items', id));
@@ -160,6 +170,7 @@ export default function PantryPage() {
           :
           (
             <div className="bg-slate-800 p-4 rounded-lg">
+              {alert ? (<Alert severity="error" onClose={() => {setAlert('')}}>{alert}</Alert>) : (<></>)}
               <form className="grid grid-cols-6 gap-x-4 items-center text-black">
                 <input
                   value={newItem.name}
@@ -173,9 +184,11 @@ export default function PantryPage() {
                   min="1"
                   placeholder="Qty"
                 />
+                {!(newItem.name == '' || newItem.quantity == 0)}
                 <button
                   onClick={addItem}
-                  className="text-white bg-slate-950 rounded-lg hover:bg-slate-900 p-3 text-xl" type="submit">
+                  disabled = {newItem.name === '' || newItem.quantity == 0}
+                  className="text-white bg-slate-950 rounded-lg hover:bg-slate-900 p-3 text-xl disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
                   <PlusIcon className="h-6 w-6 mr-1" />
                   Add Item</button>
 
