@@ -10,6 +10,7 @@ import { Camera } from "react-camera-pro";
 import { CameraComp } from "../CameraComp";
 import {convertImageToBase64, run} from "../genai/app";
 import Alert from '@mui/material/Alert';
+
 import * as dotenv from "dotenv";
 
 export default function PantryPage() {
@@ -32,6 +33,7 @@ export default function PantryPage() {
   const [airesp, setAIResponse] = useState('');
   const [facingMode, setFacingMode] = useState('environment');
   const[alert, setAlert] = useState('');
+  const [webcam, setWebcam] = useState(false);
   let api_key = process.env.REACT_APP_API_KEY
   //  console.log(api_key);
   const callGeminiAndSaveToDB = async ()=>{
@@ -45,6 +47,11 @@ export default function PantryPage() {
     const ele = document.getElementById('imageFile')
     if(ele && ele instanceof HTMLInputElement)
       ele.value = ''
+  }
+  const webcamRef = useRef(null);
+
+  const toggleWebcam = () => {
+    setWebcam(!webcam);
   }
  
   const handleSearch = (event: any) => {

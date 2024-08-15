@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Camera } from "react-camera-pro";
-
+import Webcam from "react-webcam"
 interface CameraCompProps
 {
   image:any;
@@ -9,6 +9,7 @@ interface CameraCompProps
 }
 const CameraComp: React.FC<CameraCompProps> = ({image,setImage,setDisplayImage}) => {
 const camera: any = useRef(null);
+
  const [facingMode, setFacingMode] = useState('environment');
 const errorMessages = {
     noCameraAccessible: 'No camera device accessible. Please connect your camera or try a different browser.',
@@ -19,7 +20,8 @@ const errorMessages = {
   };
   const capturePhoto = () => {
     if (camera.current) {
-      const photo = camera.current.takePhoto();
+      setImage('');
+      const photo = camera.current.getScreenshot();
       setImage(photo);
       setDisplayImage(false);
     }
@@ -30,7 +32,7 @@ const errorMessages = {
   };
     return (
         <div style={{ width: '100%', height: 'auto', borderRadius: '8px', overflow: 'hidden' }}>
-                      <Camera ref={camera} errorMessages={errorMessages} facingMode={facingMode as 'user' | 'environment'}/>
+                      <Webcam ref={camera}/>
                       <button
                         onClick={capturePhoto}
                         className="absolute bottom-2 left-1/2 transform -translate-x-1/2 p-1"
